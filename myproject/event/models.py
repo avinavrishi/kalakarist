@@ -1,4 +1,6 @@
 from django.db import models
+from django.contrib.auth.models import AbstractUser
+
 class EventType(models.Model):
     eventTypeName = models.CharField(max_length=50)
     def __str__(self):
@@ -28,6 +30,7 @@ class EntryFee(models.Model):
         return self.id
 
 class Address(models.Model):
+    id = models.AutoField(primary_key=True)
     address1 = models.CharField(max_length=255)
     address2 = models.CharField(max_length=255)
     city = models.CharField(max_length=50)
@@ -50,3 +53,34 @@ class Events(models.Model):
 
     def __str__(self):
         return self.Event_name
+
+class Users(AbstractUser):
+    genderTypes = (
+            ('male', 'Male'),
+            ('female', 'Female'),
+            ('other', 'Other')
+    )
+
+    phoneNumber = models.CharField(max_length=15)
+    dateOfBirth = models.DateField()
+    gender = models.CharField(choices=genderTypes, max_length=10)
+    address = models.ForeignKey(Address, on_delete=models.CASCADE)
+    profilePicture = models.ImageField(upload_to='participant_profiles/', null=True, blank=True)
+    biography = models.TextField(null=True, blank=True)
+    def __str__(self):
+        return f"{self.first_name} {self.last_name}"
+
+class Battle(models.Model):
+    battleTypes = (
+        ('rap', 'rap'),
+        ('dance', 'dance'),
+    )
+
+    eventId = models.ForeignKey(Events, on_delete=models.CASCADE)
+    battleName = models.CharField(max_length=200)
+    battleType = models.CharField(max_length=50, choices=battleTypes)
+    battlePoints = models.IntegerField()
+    participants = models.ManyToManyField(Users)
+
+    def __str__(self):
+        return self.battle_name
