@@ -6,7 +6,6 @@ from django.contrib.auth.models import (
     PermissionsMixin,
 )
 
-
 class UserManager(BaseUserManager):
     def create_user(
         self, email, first_name, last_name, role, tnc_acceptance, password=None
@@ -75,14 +74,17 @@ class UserManager(BaseUserManager):
         return user
 
 
-ROLES = [
-    ("D", "Developer"),
-    ("O", "Organiser"),
-    ("E", "Admin"),
-]
+
+    
 
 
 class CustomUser(AbstractBaseUser, PermissionsMixin):
+    ROLES = [
+        ("D", "Developer"),
+        ("O", "Organiser"),
+        ("E", "Admin"),
+    ]
+
     email = models.CharField("E-mail address", max_length=30, unique=True)
     first_name = models.CharField("First Name", max_length=55, null=False, blank=False)
     last_name = models.CharField("Last Name", max_length=55, null=True, blank=True)
@@ -118,7 +120,7 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
     def has_perm(self, perm, obj=None):
         return True
 
-    def has_module_perm(self, app_label):
+    def has_module_perms(self, app_label):
         """Does the user have permissions to view the user app `app_label`?"""
         return True
 
@@ -127,68 +129,3 @@ class CustomUser(AbstractBaseUser, PermissionsMixin):
         """Is the User a member of staff?"""
         # Yes, all admins are staff. So value will be that of is_admin
         return self.is_admin
-
-
-# Profile model (only for Realestate entities)
-# class Profile(models.Model):
-#     user = models.OneToOneField(User, on_delete=models.CASCADE)
-#     profile_picture = models.FileField(
-#         "Your profile picture", null=True, blank=True, upload_to="", max_length=255
-#     )
-#     address_line_1 = models.CharField(
-#         "Door/plot no.", max_length=55, null=True, blank=True
-#     )
-#     address_line_2 = models.CharField(
-#         "Building/sub-building", max_length=55, null=True, blank=True
-#     )
-#     address_line_3 = models.CharField(
-#         "Street address", max_length=55, null=True, blank=True
-#     )
-#     address_line_4 = models.CharField(
-#         "Area/Locality/Town", max_length=55, null=True, blank=True
-#     )
-#     # import city data package
-#     # city = models.ForeignKey(City, default=None, null=True, blank=True, on_delete=models.DO_NOTHING)
-#     # state = models.ForeignKey(Region, on_delete=models.DO_NOTHING, verbose_name="Province/Region/State")
-#     # country = models.ForeignKey(Country, on_delete=models.DO_NOTHING)
-#     zip_code = models.CharField(
-#         "PIN/ZIP code", default=None, max_length=20, null=True, blank=True
-#     )
-#     pan_id = models.CharField(
-#         "Taxpayer Identification Number(TIN)", max_length=15, null=True, blank=True
-#     )
-#     pan_id_proof = models.FileField(
-#         "Upload an image of the TIN", null=True, blank=True, upload_to=""
-#     )
-#     # A forgotten field for government identifier by a number or a sequence was missing. Hence, it has been added on 04th of April, 2023.
-#     govt_id = models.CharField(
-#         "Government Identification Number",
-#         max_length=50,
-#         default=None,
-#         blank=True,
-#         null=True,
-#     )
-#     # add id choices
-#     govt_id_type = models.CharField(
-#         "Type of Govt. authorized ID",
-#         choices=ID_CHOICES,
-#         max_length=1,
-#         null=True,
-#         blank=True,
-#     )  # Required only for landlord
-#     govt_id_proof = models.FileField(
-#         "Upload an image of the type of ID specified",
-#         max_length=255,
-#         upload_to="",
-#         null=True,
-#         blank=True,
-#         max_file_size=4194304,
-#     )  # Required only for landlord. Max file size limited to 4MB
-
-#     def __str__(self):
-#         return f"User profile for {self.user.first_name} {self.user.last_name}"
-
-#     class Meta:
-#         verbose_name = "Profile"
-#         verbose_name_plural = "Profiles"
-#         ordering = ["id"]

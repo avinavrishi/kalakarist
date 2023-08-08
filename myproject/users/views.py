@@ -1,62 +1,36 @@
 from django.shortcuts import render, redirect
-from .forms import loginForm, UserRegisteration
+from .forms import LoginForm, UserRegistrationForm
 from django.contrib.auth import authenticate, login, logout
 
-# from django.contrib.auth.models import User
-
-
-# Create your views here.
-def loginview(request):
-    
-    form = loginForm(request.POST or None)
+def login_view(request):
+    form = LoginForm(request.POST or None)
     if request.user.is_authenticated:
         return redirect("home")
     if request.method == "GET":
-        return render(
-            request, "sign-in/index.html", {"form": form, "invalid_user": False}
-        )
+        return render(request, "sign-in/index.html", {"form": form, "invalid_user": False})
     if request.method == "POST":
         if form.is_valid():
             email = form.cleaned_data.get("email")
-            pas = form.cleaned_data.get("password")
-            user = authenticate(email=email, password=pas)
-            if user != None:
+            password = form.cleaned_data.get("password")
+            user = authenticate(email=email, password=password)
+            if user is not None:
                 login(request, user)
-                if "redirectUrl" in request.session:
-                    redirectUrl = request.session["redirectUrl"]
-                    del request.session["redirectUrl"]
-                else:
-                    redirectUrl = "home"
-
-                return redirect(redirectUrl)
-
+                redirect_url = request.session.pop("redirectUrl", "home")
+                return redirect(redirect_url)
             else:
-                return render(
-                    request, "sign-in/index.html", {"form": form, "invalid_user": True}
-                )
+                return render(request, "sign-in/index.html", {"form": form, "invalid_user": True})
 
-
-def registerview(request):
-    # CHECK USER AUTHENTICATIONS
+def register_view(request):
     if request.user.is_authenticated:
         return redirect("home")
-    form = UserRegisteration(request.POST or None)
-    if form.is_valid():
-        password1 = form.cleaned_data.get("password1")
-        password2 = form.cleaned_data.get("password2")
-        if password1 != password2:
-            return render(
-                request,
-                "register.html",
-                {"form": form, "error": "Password doesn't match"},
-            )
-        else:
-            password = password1
-        fullName = form.cleaned_data.get("fullName")
-        emailAddress = form.cleaned_data.get("emailAddress")
+    form = UserRegistrationForm(request.POST or None)
+    if request.method == "POST":
+        if form.is_valid():
+            user = form.save()
+            login(request, user)
+            return redirect("home")
     return render(request, "register/register.html", {"form": form})
 
-
-def logoutview(request):
+def logout_view(request):
     logout(request)
     return redirect("home")
